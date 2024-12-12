@@ -1,26 +1,33 @@
 import os
-import json
+import csv
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 
 # File names for storing data
-STUDENT_FILE = 'students.json'
-COURSE_FILE = 'courses.json'
+STUDENT_FILE = 'students.csv'
+COURSE_FILE = 'courses.csv'
 
 def initialize_files():
-    """Ensure JSON files exist and initialize them if empty."""
+    """Ensure CSV files exist and initialize them if empty."""
     for file in [STUDENT_FILE, COURSE_FILE]:
         if not os.path.exists(file):
-            with open(file, 'w') as f:
-                json.dump([], f)
+            with open(file, 'w', newline='') as f:
+                writer = csv.writer(f)
+                # Header row to describe the file's structure (field names)
+                writer.writerow(['id', 'name', 'sex', 'age', 'institution', 'major'])
 
-def read_json(file_name):
-    with open(file_name, 'r') as file:
-        return json.load(file)
+def read_csv(file_name):
+    with open(file_name, 'r', newline='') as file:
+        reader = csv.DictReader(file)
+        return list(reader)
 
-def write_json(file_name, data):
-    with open(file_name, 'w') as file:
-        json.dump(data, file, indent=4)
+def write_csv(file_name, data):
+    if data:
+        fieldnames = data[0].keys()
+        with open(file_name, 'w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(data)
 
 def display_data(data):
     if data:
@@ -31,7 +38,7 @@ def display_data(data):
         return "No data available."
 
 def add_student():
-    students = read_json(STUDENT_FILE)
+    students = read_csv(STUDENT_FILE)
     student_id = len(students) + 1
     name = simpledialog.askstring("Add Student", "Enter student name:")
     sex = simpledialog.askstring("Add Student", "Enter student sex (Male/Female):")
@@ -41,7 +48,7 @@ def add_student():
 
     if name and sex and age and institution and major:
         student = {
-            "id": student_id,
+            "id": str(student_id),
             "name": name,
             "sex": sex,
             "age": age,
@@ -49,13 +56,13 @@ def add_student():
             "major": major
         }
         students.append(student)
-        write_json(STUDENT_FILE, students)
+        write_csv(STUDENT_FILE, students)
         messagebox.showinfo("Success", "New student added successfully!")
     else:
         messagebox.showwarning("Input Error", "All fields are required!")
 
 def add_course():
-    courses = read_json(COURSE_FILE)
+    courses = read_csv(COURSE_FILE)
     course_id = len(courses) + 1
     name = simpledialog.askstring("Add Course", "Enter course name:")
     credit = simpledialog.askstring("Add Course", "Enter course credit:")
@@ -63,31 +70,31 @@ def add_course():
 
     if name and credit and property:
         course = {
-            "id": course_id,
+            "id": str(course_id),
             "name": name,
             "credit": credit,
             "property": property
         }
         courses.append(course)
-        write_json(COURSE_FILE, courses)
+        write_csv(COURSE_FILE, courses)
         messagebox.showinfo("Success", "New course added successfully!")
     else:
         messagebox.showwarning("Input Error", "All fields are required!")
 
 def show_students():
-    students = read_json(STUDENT_FILE)
+    students = read_csv(STUDENT_FILE)
     result = display_data(students)
     messagebox.showinfo("Student Information", result)
 
 def show_courses():
-    courses = read_json(COURSE_FILE)
+    courses = read_csv(COURSE_FILE)
     result = display_data(courses)
     messagebox.showinfo("Course Information", result)
 
 def search_student():
     name = simpledialog.askstring("Search Student", "Enter student name to search:")
     if name:
-        students = read_json(STUDENT_FILE)
+        students = read_csv(STUDENT_FILE)
         results = [entry for entry in students if name.lower() in entry["name"].lower()]
         result = display_data(results)
         messagebox.showinfo("Search Results", result if results else f"No match found for '{name}'.")
@@ -95,22 +102,22 @@ def search_student():
 def search_course():
     name = simpledialog.askstring("Search Course", "Enter course name to search:")
     if name:
-        courses = read_json(COURSE_FILE)
+        courses = read_csv(COURSE_FILE)
         results = [entry for entry in courses if name.lower() in entry["name"].lower()]
         result = display_data(results)
         messagebox.showinfo("Search Results", result if results else f"No match found for '{name}'.")
 
 def sort_entries(file_name, key):
-    data = read_json(file_name)
+    data = read_csv(file_name)
     if key == "id":
-        sorted_data = sorted(data, key=lambda x: x.get(key, 0))  # Numeric sort for ID
+        sorted_data = sorted(data, key=lambda x: int(x.get(key, 0)))  # Numeric sort for ID
     else:
         sorted_data = sorted(data, key=lambda x: x.get(key, "").lower())
-    write_json(file_name, sorted_data)
+    write_csv(file_name, sorted_data)
     messagebox.showinfo("Success", f"Data sorted by {key.capitalize()}!")
 
 def edit_entry(file_name):
-    data = read_json(file_name)
+    data = read_csv(file_name)
     if not data:
         messagebox.showwarning("Error", "No entries to edit!")
         return
@@ -127,8 +134,37 @@ def edit_entry(file_name):
             if new_value:
                 entry[key] = new_value
 
-    write_json(file_name, data)
+    write_csv(file_name, data)
     messagebox.showinfo("Success", "Entry updated successfully!")
+
+def delete_entry(file_name):
+    data = read_csv(file_name)
+    if not data:
+        messagebox.showwarning("Error", "No entries to delete!")
+        return
+
+    entry_id = simpledialog.askinteger("Delete Entry", "Enter the ID of the entry to delete:")
+    if not entry_id or entry_id < 1 or entry_id > len(data):
+        messagebox.showwarning("Error", "Invalid ID!")
+        return
+
+    data.pop(entry_id - 1)
+    write_csv(file_name, data)
+    messagebox.showinfo("Success", "Entry deleted successfully!")
+
+def compaction(file_name):
+    """Compacts the file by removing deleted entries and reordering the IDs."""
+    data = read_csv(file_name)
+    if not data:
+        messagebox.showwarning("Error", "No data to compact!")
+        return
+
+    # Reorder the records and reset the IDs
+    for index, entry in enumerate(data, start=1):
+        entry["id"] = str(index)
+
+    write_csv(file_name, data)
+    messagebox.showinfo("Success", f"File '{file_name}' has been compacted successfully!")
 
 def main():
     initialize_files()
@@ -154,6 +190,10 @@ def main():
     tk.Button(root, text="Sort Courses by ID", command=lambda: sort_entries(COURSE_FILE, "id"), **button_style).pack(pady=5)
     tk.Button(root, text="Edit Student Entry", command=lambda: edit_entry(STUDENT_FILE), **button_style).pack(pady=5)
     tk.Button(root, text="Edit Course Entry", command=lambda: edit_entry(COURSE_FILE), **button_style).pack(pady=5)
+    tk.Button(root, text="Delete Student Entry", command=lambda: delete_entry(STUDENT_FILE), **button_style).pack(pady=5)
+    tk.Button(root, text="Delete Course Entry", command=lambda: delete_entry(COURSE_FILE), **button_style).pack(pady=5)
+    tk.Button(root, text="Compaction Students File", command=lambda: compaction(STUDENT_FILE), **button_style).pack(pady=5)
+    tk.Button(root, text="Compaction Courses File", command=lambda: compaction(COURSE_FILE), **button_style).pack(pady=5)
     tk.Button(root, text="Exit", command=root.quit, **button_style).pack(pady=5)
 
     root.mainloop()
