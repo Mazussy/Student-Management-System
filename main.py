@@ -7,29 +7,35 @@ from tkinter import messagebox, simpledialog
 STUDENT_FILE = 'students.csv'
 COURSE_FILE = 'courses.csv'
 
+# Define fixed record length for students (example)
+STUDENT_RECORD_LENGTH = 6  # id, name, sex, age, institution, major
+COURSE_RECORD_LENGTH = 4  # id, name, credit, property
+
 def initialize_files():
     """Ensure CSV files exist and initialize them if empty."""
-    for file in [STUDENT_FILE, COURSE_FILE]:
-        if not os.path.exists(file):
-            with open(file, 'w', newline='') as f:
+    for file_name, header in [(STUDENT_FILE, ['id', 'name', 'sex', 'age', 'institution', 'major']),
+                              (COURSE_FILE, ['id', 'name', 'credit', 'property'])]:
+        if not os.path.exists(file_name):
+            with open(file_name, 'w', newline='') as f:
                 writer = csv.writer(f)
-                # Header row to describe the file's structure (field names)
-                writer.writerow(['id', 'name', 'sex', 'age', 'institution', 'major'])
+                writer.writerow(header)  # Write the header record
 
 def read_csv(file_name):
+    """Read data from a CSV file and return as a list of dictionaries."""
     with open(file_name, 'r', newline='') as file:
         reader = csv.DictReader(file)
-        return list(reader)
+        return [row for row in reader]
 
 def write_csv(file_name, data):
+    """Write a list of dictionaries to a CSV file."""
     if data:
-        fieldnames = data[0].keys()
         with open(file_name, 'w', newline='') as file:
-            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer = csv.DictWriter(file, fieldnames=data[0].keys())
             writer.writeheader()
             writer.writerows(data)
 
 def display_data(data):
+    """Display data in a formatted way."""
     if data:
         return "\n".join(
             ["\n".join([f"{key.capitalize()}: {value}" for key, value in entry.items()]) + "\n" + "-" * 40 for entry in data]
@@ -48,7 +54,7 @@ def add_student():
 
     if name and sex and age and institution and major:
         student = {
-            "id": str(student_id),
+            "id": student_id,
             "name": name,
             "sex": sex,
             "age": age,
@@ -70,7 +76,7 @@ def add_course():
 
     if name and credit and property:
         course = {
-            "id": str(course_id),
+            "id": course_id,
             "name": name,
             "credit": credit,
             "property": property
@@ -148,23 +154,16 @@ def delete_entry(file_name):
         messagebox.showwarning("Error", "Invalid ID!")
         return
 
+    # Delete the record
     data.pop(entry_id - 1)
     write_csv(file_name, data)
     messagebox.showinfo("Success", "Entry deleted successfully!")
 
-def compaction(file_name):
-    """Compacts the file by removing deleted entries and reordering the IDs."""
+def compact_file(file_name):
+    """Compacts the file by shifting records and removing gaps after deletion."""
     data = read_csv(file_name)
-    if not data:
-        messagebox.showwarning("Error", "No data to compact!")
-        return
-
-    # Reorder the records and reset the IDs
-    for index, entry in enumerate(data, start=1):
-        entry["id"] = str(index)
-
     write_csv(file_name, data)
-    messagebox.showinfo("Success", f"File '{file_name}' has been compacted successfully!")
+    messagebox.showinfo("Success", "File compacted and gaps removed!")
 
 def main():
     initialize_files()
@@ -192,8 +191,8 @@ def main():
     tk.Button(root, text="Edit Course Entry", command=lambda: edit_entry(COURSE_FILE), **button_style).pack(pady=5)
     tk.Button(root, text="Delete Student Entry", command=lambda: delete_entry(STUDENT_FILE), **button_style).pack(pady=5)
     tk.Button(root, text="Delete Course Entry", command=lambda: delete_entry(COURSE_FILE), **button_style).pack(pady=5)
-    tk.Button(root, text="Compaction Students File", command=lambda: compaction(STUDENT_FILE), **button_style).pack(pady=5)
-    tk.Button(root, text="Compaction Courses File", command=lambda: compaction(COURSE_FILE), **button_style).pack(pady=5)
+    tk.Button(root, text="Compact Students File", command=lambda: compact_file(STUDENT_FILE), **button_style).pack(pady=5)
+    tk.Button(root, text="Compact Courses File", command=lambda: compact_file(COURSE_FILE), **button_style).pack(pady=5)
     tk.Button(root, text="Exit", command=root.quit, **button_style).pack(pady=5)
 
     root.mainloop()
