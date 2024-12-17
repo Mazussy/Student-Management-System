@@ -11,7 +11,6 @@ COURSE_FILE = 'courses.csv'
 STUDENT_RECORD_LENGTH = 6  # id, name, sex, age, institution, major
 COURSE_RECORD_LENGTH = 4  # id, name, credit, property
 
-
 def initialize_files():
     """Ensure CSV files exist and initialize them if empty."""
     for file_name, header in [(STUDENT_FILE, ['id', 'name', 'sex', 'age', 'institution', 'major']),
@@ -21,13 +20,11 @@ def initialize_files():
                 writer = csv.writer(f)
                 writer.writerow(header)  # Write the header record
 
-
 def read_csv(file_name):
     """Read data from a CSV file and return as a list of dictionaries."""
     with open(file_name, 'r', newline='') as file:
         reader = csv.DictReader(file)
         return [row for row in reader]
-
 
 def write_csv(file_name, data):
     """Write a list of dictionaries to a CSV file."""
@@ -37,29 +34,14 @@ def write_csv(file_name, data):
             writer.writeheader()
             writer.writerows(data)
 
-
-def calculate_rrn(data):
-    """Calculate Relative Record Number (RRN) for each entry."""
-    for i, row in enumerate(data, start=1):
-        row['RRN'] = i
-    return data
-
-
 def display_data(data):
-    """Display data in a formatted way with RRN."""
-    data_with_rrn = calculate_rrn(data)
-    if data_with_rrn:
+    """Display data in a formatted way."""
+    if data:
         return "\n".join(
-            [
-                f"RRN: {entry['RRN']}\n" + "\n".join(
-                    [f"{key.capitalize()}: {value}" for key, value in entry.items() if key != 'RRN']
-                ) + "\n" + "-" * 40
-                for entry in data_with_rrn
-            ]
+            ["\n".join([f"{key.capitalize()}: {value}" for key, value in entry.items()]) + "\n" + "-" * 40 for entry in data]
         )
     else:
         return "No data available."
-
 
 def add_student():
     students = read_csv(STUDENT_FILE)
@@ -85,7 +67,6 @@ def add_student():
     else:
         messagebox.showwarning("Input Error", "All fields are required!")
 
-
 def add_course():
     courses = read_csv(COURSE_FILE)
     course_id = len(courses) + 1
@@ -106,18 +87,15 @@ def add_course():
     else:
         messagebox.showwarning("Input Error", "All fields are required!")
 
-
 def show_students():
     students = read_csv(STUDENT_FILE)
     result = display_data(students)
     messagebox.showinfo("Student Information", result)
 
-
 def show_courses():
     courses = read_csv(COURSE_FILE)
     result = display_data(courses)
     messagebox.showinfo("Course Information", result)
-
 
 def search_student():
     name = simpledialog.askstring("Search Student", "Enter student name to search:")
@@ -127,7 +105,6 @@ def search_student():
         result = display_data(results)
         messagebox.showinfo("Search Results", result if results else f"No match found for '{name}'.")
 
-
 def search_course():
     name = simpledialog.askstring("Search Course", "Enter course name to search:")
     if name:
@@ -135,7 +112,6 @@ def search_course():
         results = [entry for entry in courses if name.lower() in entry["name"].lower()]
         result = display_data(results)
         messagebox.showinfo("Search Results", result if results else f"No match found for '{name}'.")
-
 
 def sort_entries(file_name, key):
     data = read_csv(file_name)
@@ -146,23 +122,20 @@ def sort_entries(file_name, key):
     write_csv(file_name, sorted_data)
     messagebox.showinfo("Success", f"Data sorted by {key.capitalize()}!")
 
-
 def edit_entry(file_name):
     data = read_csv(file_name)
     if not data:
         messagebox.showwarning("Error", "No entries to edit!")
         return
 
-    data_with_rrn = calculate_rrn(data)
-
-    entry_rrn = simpledialog.askinteger("Edit Entry", "Enter the RRN of the entry to edit:")
-    if not entry_rrn or entry_rrn < 1 or entry_rrn > len(data_with_rrn):
-        messagebox.showwarning("Error", "Invalid RRN!")
+    entry_id = simpledialog.askinteger("Edit Entry", "Enter the ID of the entry to edit:")
+    if not entry_id or entry_id < 1 or entry_id > len(data):
+        messagebox.showwarning("Error", "Invalid ID!")
         return
 
-    entry = data_with_rrn[entry_rrn - 1]
+    entry = data[entry_id - 1]
     for key in entry:
-        if key != "id" and key != "RRN":  # ID and RRN should not be edited
+        if key != "id":  # ID should not be edited
             new_value = simpledialog.askstring("Edit Entry", f"Enter new value for {key.capitalize()} (current: {entry[key]}):")
             if new_value:
                 entry[key] = new_value
@@ -170,32 +143,27 @@ def edit_entry(file_name):
     write_csv(file_name, data)
     messagebox.showinfo("Success", "Entry updated successfully!")
 
-
 def delete_entry(file_name):
     data = read_csv(file_name)
     if not data:
         messagebox.showwarning("Error", "No entries to delete!")
         return
 
-    data_with_rrn = calculate_rrn(data)
-
-    entry_rrn = simpledialog.askinteger("Delete Entry", "Enter the RRN of the entry to delete:")
-    if not entry_rrn or entry_rrn < 1 or entry_rrn > len(data_with_rrn):
-        messagebox.showwarning("Error", "Invalid RRN!")
+    entry_id = simpledialog.askinteger("Delete Entry", "Enter the ID of the entry to delete:")
+    if not entry_id or entry_id < 1 or entry_id > len(data):
+        messagebox.showwarning("Error", "Invalid ID!")
         return
 
     # Delete the record
-    data.pop(entry_rrn - 1)
+    data.pop(entry_id - 1)
     write_csv(file_name, data)
     messagebox.showinfo("Success", "Entry deleted successfully!")
-
 
 def compact_file(file_name):
     """Compacts the file by shifting records and removing gaps after deletion."""
     data = read_csv(file_name)
     write_csv(file_name, data)
     messagebox.showinfo("Success", "File compacted and gaps removed!")
-
 
 def main():
     initialize_files()
@@ -228,7 +196,6 @@ def main():
     tk.Button(root, text="Exit", command=root.quit, **button_style).pack(pady=5)
 
     root.mainloop()
-
 
 if __name__ == "__main__":
     main()
