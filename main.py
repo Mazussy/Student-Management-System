@@ -20,10 +20,6 @@ COURSE_RECORD_LENGTH = 4   # Fields: id, name, credit, property
 
 
 def initialize_files():
-    """
-    Ensure that the necessary CSV files exist and are properly initialized with headers.
-    If the files don't exist, create them with appropriate column headers.
-    """
     file_configurations = [
         (STUDENT_FILE, ['id', 'name', 'sex', 'age', 'institution', 'major']),
         (COURSE_FILE, ['id', 'name', 'credit', 'property'])
@@ -37,62 +33,28 @@ def initialize_files():
 
 
 def read_csv(file_name):
-    """
-    Read data from a CSV file and convert it to a list of dictionaries.
-    Each dictionary represents one record with field names as keys.
-    
-    Args:
-        file_name (str): Name of the CSV file to read
-        
-    Returns:
-        list: List of dictionaries containing the CSV data
-    """
     with open(file_name, 'r', newline='') as file:
         reader = csv.DictReader(file)
         return [row for row in reader]
 
 
 def write_csv(file_name, data):
-    """
-    Write a list of dictionaries to a CSV file, maintaining the field order.
-    
-    Args:
-        file_name (str): Name of the CSV file to write to
-        data (list): List of dictionaries containing the data to write
-    """
     if data:
         with open(file_name, 'w', newline='') as file:
             writer = csv.DictWriter(file, fieldnames=data[0].keys())
             writer.writeheader()
             writer.writerows(data)
+            print(f"Data written to {file_name}")  # Debugging statement
+
 
 
 def calculate_rrn(data):
-    """
-    Add Relative Record Numbers (RRN) to each record.
-    RRN is used to identify records by their position in the file.
-    
-    Args:
-        data (list): List of record dictionaries
-        
-    Returns:
-        list: Data with added RRN field
-    """
     for i, row in enumerate(data, start=1):
         row['RRN'] = i
     return data
 
 
 def display_data(data):
-    """
-    Format data for display in the GUI, including RRN for each record.
-    
-    Args:
-        data (list): List of record dictionaries
-        
-    Returns:
-        str: Formatted string representation of the data
-    """
     data_with_rrn = calculate_rrn(data)
     if data_with_rrn:
         return "\n".join(
@@ -108,10 +70,6 @@ def display_data(data):
 
 
 def add_student():
-    """
-    Display a single window with entry fields for all student information 
-    and add a new student record.
-    """
     def save_student():
         # Collect data from entry fields
         info = {
@@ -165,10 +123,6 @@ def add_student():
 
 
 def add_course():
-    """
-    Display a single window with entry fields for all course information 
-    and add a new course record.
-    """
     def save_course():
         # Collect data from entry fields
         info = {
@@ -213,24 +167,18 @@ def add_course():
 
 
 def show_students():
-    """Display all student records in a formatted message box."""
     students = read_csv(STUDENT_FILE)
     result = display_data(students)
     messagebox.showinfo("Student Information", result)
 
 
 def show_courses():
-    """Display all course records in a formatted message box."""
     courses = read_csv(COURSE_FILE)
     result = display_data(courses)
     messagebox.showinfo("Course Information", result)
 
 
 def search_student():
-    """
-    Search for students by name (case-insensitive partial match).
-    Displays all matching records in a message box.
-    """
     name = simpledialog.askstring("Search Student", "Enter student name to search:")
     if name:
         students = read_csv(STUDENT_FILE)
@@ -240,10 +188,6 @@ def search_student():
 
 
 def search_course():
-    """
-    Search for courses by name (case-insensitive partial match).
-    Displays all matching records in a message box.
-    """
     name = simpledialog.askstring("Search Course", "Enter course name to search:")
     if name:
         courses = read_csv(COURSE_FILE)
@@ -253,14 +197,6 @@ def search_course():
 
 
 def edit_entry(file_name, record_type):
-    """
-    Edit an existing record identified by its RRN (Relative Record Number).
-    Display a single window with all fields for editing.
-    
-    Args:
-        file_name (str): Name of the file containing the record to edit
-        record_type (str): Type of record ("student" or "course") for field labels
-    """
     data = read_csv(file_name)
     if not data:
         messagebox.showwarning("Error", f"No {record_type}s to edit!")
@@ -306,49 +242,45 @@ def edit_entry(file_name, record_type):
     tk.Button(edit_window, text="Save", command=save_changes, bg="#4caf50", fg="white").pack(pady=20)
 
 def delete_entry(file_name):
-    """
-    Delete a record identified by its RRN (Relative Record Number).
-    
-    Args:
-        file_name (str): Name of the file containing the record to delete
-    """
+    # Read existing data
     data = read_csv(file_name)
     if not data:
         messagebox.showwarning("Error", "No entries to delete!")
         return
-
+    
+    # Display current records
     data_with_rrn = calculate_rrn(data)
-
-    # Get the RRN of the record to delete
+    display_result = display_data(data_with_rrn)
+    messagebox.showinfo("Current Records", display_result)
+    
+    # Get entry to delete
     entry_rrn = simpledialog.askinteger("Delete Entry", "Enter the RRN of the entry to delete:")
     if not entry_rrn or entry_rrn < 1 or entry_rrn > len(data_with_rrn):
         messagebox.showwarning("Error", "Invalid RRN!")
         return
-
-    # Remove the record and save
+    
+    # Get confirmation from user
+    record_to_delete = data_with_rrn[entry_rrn - 1]
+    confirm = messagebox.askyesno("Confirm Delete", 
+                                 f"Are you sure you want to delete this entry?\n\n{display_data([record_to_delete])}")
+    if not confirm:
+        return
+        
+    # Remove the record
     data.pop(entry_rrn - 1)
+    
+    # Recalculate RRN and save updated data
+    data = calculate_rrn(data)
     write_csv(file_name, data)
     messagebox.showinfo("Success", "Entry deleted successfully!")
-
-
-def compact_file(file_name):
-    """
-    Remove any gaps in the file that might have been created by deletions.
-    This ensures continuous record numbering and optimal file organization.
     
-    Args:
-        file_name (str): Name of the file to compact
-    """
+def compact_file(file_name):
     data = read_csv(file_name)
     write_csv(file_name, data)
     messagebox.showinfo("Success", "File compacted and gaps removed!")
 
 
 def main():
-    """
-    Main function that sets up the GUI and creates all necessary buttons
-    for interacting with the student and course management system.
-    """
     initialize_files()
 
     # Create and configure the main window
