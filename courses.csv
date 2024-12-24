@@ -1,1 +1,2 @@
-id,name,sex,age,institution,major
+id,name,credit,property,RRN
+2,File Organization,3,Optional,1

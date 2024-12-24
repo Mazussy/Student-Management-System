@@ -109,60 +109,107 @@ def display_data(data):
 
 def add_student():
     """
-    Display dialog boxes to collect student information and add a new student record.
-    Automatically generates the next available student ID.
+    Display a single window with entry fields for all student information 
+    and add a new student record.
     """
-    students = read_csv(STUDENT_FILE)
-    student_id = len(students) + 1  # Auto-increment ID
+    def save_student():
+        # Collect data from entry fields
+        info = {
+            "name": name_entry.get(),
+            "sex": sex_entry.get(),
+            "age": age_entry.get(),
+            "institution": institution_entry.get(),
+            "major": major_entry.get(),
+        }
+        
+        if all(info.values()):  # Ensure all fields are filled
+            students = read_csv(STUDENT_FILE)
+            student_id = len(students) + 1  # Auto-increment ID
+            student = {"id": student_id, **info}
+            students.append(student)
+            write_csv(STUDENT_FILE, students)
+            messagebox.showinfo("Success", "New student added successfully!")
+            add_window.destroy()
+        else:
+            messagebox.showwarning("Input Error", "All fields are required!")
+
+    # Create a new window for adding student details
+    add_window = tk.Toplevel()
+    add_window.title("Add Student")
+    add_window.geometry("600x500")
     
-    # Collect student information through dialog boxes
-    fields = {
-        "name": "Enter student name:",
-        "sex": "Enter student sex (Male/Female):",
-        "age": "Enter student age:",
-        "institution": "Enter student institution:",
-        "major": "Enter student major:"
-    }
+    # Add entry fields for student details
+    tk.Label(add_window, text="Enter Student Details", font=("Helvetica", 14, "bold")).pack(pady=10)
+    tk.Label(add_window, text="Name:").pack()
+    name_entry = tk.Entry(add_window, width=30)
+    name_entry.pack(pady=5)
     
-    # Collect all required information
-    info = {field: simpledialog.askstring("Add Student", prompt) 
-            for field, prompt in fields.items()}
+    tk.Label(add_window, text="Sex (Male/Female):").pack()
+    sex_entry = tk.Entry(add_window, width=30)
+    sex_entry.pack(pady=5)
     
-    # Verify all fields were filled out
-    if all(info.values()):
-        student = {"id": student_id, **info}
-        students.append(student)
-        write_csv(STUDENT_FILE, students)
-        messagebox.showinfo("Success", "New student added successfully!")
-    else:
-        messagebox.showwarning("Input Error", "All fields are required!")
+    tk.Label(add_window, text="Age:").pack()
+    age_entry = tk.Entry(add_window, width=30)
+    age_entry.pack(pady=5)
+    
+    tk.Label(add_window, text="Institution:").pack()
+    institution_entry = tk.Entry(add_window, width=30)
+    institution_entry.pack(pady=5)
+    
+    tk.Label(add_window, text="Major:").pack()
+    major_entry = tk.Entry(add_window, width=30)
+    major_entry.pack(pady=5)
+    
+    # Add Save button
+    tk.Button(add_window, text="Save", command=save_student, bg="#4caf50", fg="white").pack(pady=20)
 
 
 def add_course():
     """
-    Display dialog boxes to collect course information and add a new course record.
-    Automatically generates the next available course ID.
+    Display a single window with entry fields for all course information 
+    and add a new course record.
     """
-    courses = read_csv(COURSE_FILE)
-    course_id = len(courses) + 1  # Auto-increment ID
+    def save_course():
+        # Collect data from entry fields
+        info = {
+            "name": name_entry.get(),
+            "credit": credit_entry.get(),
+            "property": property_entry.get(),
+        }
+        
+        if all(info.values()):  # Ensure all fields are filled
+            courses = read_csv(COURSE_FILE)
+            course_id = len(courses) + 1  # Auto-increment ID
+            course = {"id": course_id, **info}
+            courses.append(course)
+            write_csv(COURSE_FILE, courses)
+            messagebox.showinfo("Success", "New course added successfully!")
+            add_window.destroy()
+        else:
+            messagebox.showwarning("Input Error", "All fields are required!")
+
+    # Create a new window for adding course details
+    add_window = tk.Toplevel()
+    add_window.title("Add Course")
+    add_window.geometry("600x500")
     
-    # Collect course information
-    fields = {
-        "name": "Enter course name:",
-        "credit": "Enter course credit:",
-        "property": "Enter course property (Compulsory/Optional):"
-    }
+    # Add entry fields for course details
+    tk.Label(add_window, text="Enter Course Details", font=("Helvetica", 14, "bold")).pack(pady=10)
+    tk.Label(add_window, text="Name:").pack()
+    name_entry = tk.Entry(add_window, width=30)
+    name_entry.pack(pady=5)
     
-    info = {field: simpledialog.askstring("Add Course", prompt)
-            for field, prompt in fields.items()}
+    tk.Label(add_window, text="Credit:").pack()
+    credit_entry = tk.Entry(add_window, width=30)
+    credit_entry.pack(pady=5)
     
-    if all(info.values()):
-        course = {"id": course_id, **info}
-        courses.append(course)
-        write_csv(COURSE_FILE, courses)
-        messagebox.showinfo("Success", "New course added successfully!")
-    else:
-        messagebox.showwarning("Input Error", "All fields are required!")
+    tk.Label(add_window, text="Property (Compulsory/Optional):").pack()
+    property_entry = tk.Entry(add_window, width=30)
+    property_entry.pack(pady=5)
+    
+    # Add Save button
+    tk.Button(add_window, text="Save", command=save_course, bg="#4caf50", fg="white").pack(pady=20)
+
 
 
 def show_students():
@@ -205,61 +252,58 @@ def search_course():
         messagebox.showinfo("Search Results", result if results else f"No match found for '{name}'.")
 
 
-def sort_entries(file_name, key):
-    """
-    Sort records in a file by the specified key.
-    Handles numeric sorting for IDs and case-insensitive sorting for text fields.
-    
-    Args:
-        file_name (str): Name of the file containing records to sort
-        key (str): Field name to sort by
-    """
-    data = read_csv(file_name)
-    if key == "id":
-        # Sort numerically for ID field
-        sorted_data = sorted(data, key=lambda x: int(x.get(key, 0)))
-    else:
-        # Sort alphabetically (case-insensitive) for other fields
-        sorted_data = sorted(data, key=lambda x: x.get(key, "").lower())
-    write_csv(file_name, sorted_data)
-    messagebox.showinfo("Success", f"Data sorted by {key.capitalize()}!")
-
-
-def edit_entry(file_name):
+def edit_entry(file_name, record_type):
     """
     Edit an existing record identified by its RRN (Relative Record Number).
-    Displays current values and allows updating each field except ID.
+    Display a single window with all fields for editing.
     
     Args:
         file_name (str): Name of the file containing the record to edit
+        record_type (str): Type of record ("student" or "course") for field labels
     """
     data = read_csv(file_name)
     if not data:
-        messagebox.showwarning("Error", "No entries to edit!")
+        messagebox.showwarning("Error", f"No {record_type}s to edit!")
         return
 
     data_with_rrn = calculate_rrn(data)
 
     # Get the RRN of the record to edit
-    entry_rrn = simpledialog.askinteger("Edit Entry", "Enter the RRN of the entry to edit:")
+    entry_rrn = simpledialog.askinteger("Edit Entry", f"Enter the RRN of the {record_type} to edit:")
     if not entry_rrn or entry_rrn < 1 or entry_rrn > len(data_with_rrn):
         messagebox.showwarning("Error", "Invalid RRN!")
         return
 
-    # Edit each field except ID and RRN
+    # Get the record to edit
     entry = data_with_rrn[entry_rrn - 1]
-    for key in entry:
-        if key != "id" and key != "RRN":
-            new_value = simpledialog.askstring(
-                "Edit Entry", 
-                f"Enter new value for {key.capitalize()} (current: {entry[key]}):"
-            )
-            if new_value:
-                entry[key] = new_value
 
-    write_csv(file_name, data)
-    messagebox.showinfo("Success", "Entry updated successfully!")
+    def save_changes():
+        for key, widget in entries.items():
+            if key != "id" and widget.get():
+                entry[key] = widget.get()
+        write_csv(file_name, data)
+        messagebox.showinfo("Success", f"{record_type.capitalize()} updated successfully!")
+        edit_window.destroy()
 
+    # Create the edit window
+    edit_window = tk.Toplevel()
+    edit_window.title(f"Edit {record_type.capitalize()} Entry")
+    edit_window.geometry("600x500")
+
+    tk.Label(edit_window, text=f"Edit {record_type.capitalize()} Details", font=("Helvetica", 14, "bold")).pack(pady=10)
+
+    # Create entry fields for all editable fields
+    entries = {}
+    for key, value in entry.items():
+        if key != "RRN":  # RRN is not editable
+            tk.Label(edit_window, text=f"{key.capitalize()}:").pack(pady=5)
+            entry_widget = tk.Entry(edit_window, width=30)
+            entry_widget.insert(0, value)  # Pre-fill with current value
+            entry_widget.pack(pady=5)
+            entries[key] = entry_widget
+
+    # Add Save button
+    tk.Button(edit_window, text="Save", command=save_changes, bg="#4caf50", fg="white").pack(pady=20)
 
 def delete_entry(file_name):
     """
@@ -310,7 +354,7 @@ def main():
     # Create and configure the main window
     root = tk.Tk()
     root.title("Student and Course Management System")
-    root.geometry("600x500")
+    root.geometry("900x800")
     root.configure(bg="#f5f5f5")
 
     # Add title label
@@ -335,12 +379,9 @@ def main():
         ("Add Course", add_course),
         ("Search Student by Name", search_student),
         ("Search Course by Name", search_course),
-        ("Sort Students by Name", lambda: sort_entries(STUDENT_FILE, "name")),
-        ("Sort Courses by Name", lambda: sort_entries(COURSE_FILE, "name")),
-        ("Sort Students by ID", lambda: sort_entries(STUDENT_FILE, "id")),
-        ("Sort Courses by ID", lambda: sort_entries(COURSE_FILE, "id")),
-        ("Edit Student Entry", lambda: edit_entry(STUDENT_FILE)),
-        ("Edit Course Entry", lambda: edit_entry(COURSE_FILE)),
+        ("Edit Student Entry", lambda: edit_entry(STUDENT_FILE, "student")),
+        ("Edit Course Entry", lambda: edit_entry(COURSE_FILE, "course")),
+
         ("Delete Student Entry", lambda: delete_entry(STUDENT_FILE)),
         ("Delete Course Entry", lambda: delete_entry(COURSE_FILE)),
         ("Compact Students File", lambda: compact_file(STUDENT_FILE)),
