@@ -4,9 +4,7 @@ A GUI-based application for managing student and course records. It implements b
 Demonstrating efficient file organization and record management using CSV files as a database solution.
 
 ## Features
-- **Student Management**: Add, edit, view, search, and delete student records.
-- **Course Management**: Add, edit, view, search, and delete course records.
-- 
+
 - CSV-based data persistence with automatic file initialization
 - CRUD operations (Create, Read, Update, Delete) for record management
 - Record tracking using Relative Record Numbers (RRN)
