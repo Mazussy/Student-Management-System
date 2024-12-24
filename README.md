@@ -32,7 +32,7 @@ Demonstrating efficient file organization and record management using CSV files 
 
 ```bash
 git clone https://github.com/yourusername/record-management.git
-cd record-management
+cd Student-Management-System
 python main.py
 ```
 
