@@ -1,9 +1,12 @@
-# CSV-Based Record Management System
+# CSV-Based Student and Course Management System
 
-A Python GUI application demonstrating efficient file organization and record management using CSV files as a database solution.
+A GUI-based application for managing student and course records. It implements basic CRUD operations (Create, Read, Update, Delete) for both students and courses, with data stored in CSV files as a simple database solution,
+Demonstrating efficient file organization and record management using CSV files as a database solution.
 
 ## Features
-
+- **Student Management**: Add, edit, view, search, and delete student records.
+- **Course Management**: Add, edit, view, search, and delete course records.
+- 
 - CSV-based data persistence with automatic file initialization
 - CRUD operations (Create, Read, Update, Delete) for record management
 - Record tracking using Relative Record Numbers (RRN)
@@ -38,9 +41,5 @@ python main.py
 ## Requirements
 - Python 3.x
 - tkinter (included in standard Python installation)
+- CSV files (used for data storage)
 
-## License
-MIT License
-
-## Author
-Your Name
