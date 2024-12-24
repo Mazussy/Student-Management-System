@@ -169,13 +169,37 @@ def add_course():
 def show_students():
     students = read_csv(STUDENT_FILE)
     result = display_data(students)
-    messagebox.showinfo("Student Information", result)
+    
+    # Create a new window to display student information
+    show_window = tk.Toplevel()
+    show_window.title("Student Information")
+    show_window.geometry("800x600")  # Set the window size to be wider
+    
+    # Add a text widget to display the student information
+    text_widget = tk.Text(show_window, wrap="none")
+    text_widget.pack(expand=True, fill="both")  # Make the text widget span the whole window
+    
+    # Insert the student information into the text widget
+    text_widget.insert("1.0", result)
+    text_widget.config(state="disabled")  # Make the text widget read-only
 
 
 def show_courses():
     courses = read_csv(COURSE_FILE)
     result = display_data(courses)
-    messagebox.showinfo("Course Information", result)
+    
+    # Create a new window to display course information
+    show_window = tk.Toplevel()
+    show_window.title("Course Information")
+    show_window.geometry("800x600")  # Set the window size to be wider
+    
+    # Add a text widget to display the course information
+    text_widget = tk.Text(show_window, wrap="none")
+    text_widget.pack(expand=True, fill="both")  # Make the text widget span the whole window
+    
+    # Insert the course information into the text widget
+    text_widget.insert("1.0", result)
+    text_widget.config(state="disabled")  # Make the text widget read-only
 
 
 def search_student():
