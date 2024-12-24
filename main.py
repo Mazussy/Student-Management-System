@@ -1,5 +1,5 @@
 # Student and Course Management System
-# This program implements a GUI-based system for managing student and course records
+# Implements a GUI-based system for managing student and course records
 # using CSV files as a simple database solution. It provides CRUD operations
 # (Create, Read, Update, Delete) for both students and courses.
 

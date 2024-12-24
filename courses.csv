@@ -1,2 +1,11 @@
 id,name,credit,property,RRN
 1,File Organisation,3,Optional,1
+2,Data Structures,4,Compulsory,2
+3,Algorithms,4,Compulsory,3
+4,Database Systems,3,Compulsory,4
+5,Operating Systems,4,Compulsory,5
+6,Computer Networks,3,Optional,6
+7,Software Engineering,3,Compulsory,7
+8,Artificial Intelligence,3,Optional,8
+9,Machine Learning,3,Optional,9
+10,Web Development,3,Optional,10
